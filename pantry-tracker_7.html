@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Pantry</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+  :root {
+    --bg: #f4efe6;
+    --dark: #2c2416;
+    --gold: #8b6914;
+    --gold-light: #c9a84c;
+    --cream: #fdfaf5;
+    --border: #ddd3b8;
+    --muted: #9c8a6a;
+    --red: #c0392b;
+    --orange: #e67e22;
+    --green: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--dark); font-family: 'Source Serif 4', Georgia, serif; min-height: 100vh; }
+
+  /* ── Header ── */
+  header { background: var(--dark); color: var(--cream); padding: 20px 24px 16px; border-bottom: 4px solid var(--gold); position: sticky; top: 0; z-index: 50; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; max-width: 920px; margin: 0 auto; }
+  .header-label { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 3px; }
+  h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 400; }
+  .header-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; }
+  .badge-red  { color: #e07070; background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); }
+  .badge-orange { color: #e8b860; background: rgba(230,126,34,0.15); border: 1px solid rgba(230,126,34,0.3); }
+  .btn { font-family: inherit; font-size: 13px; padding: 7px 15px; border-radius: 4px; cursor: pointer; border: none; transition: background 0.15s; white-space: nowrap; }
+  .btn-gold { background: var(--gold); color: var(--cream); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline { background: rgba(201,168,76,0.1); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.35); }
+  .btn-outline:hover { background: rgba(201,168,76,0.2); }
+  .header-search { display: flex; gap: 8px; margin-top: 12px; max-width: 920px; margin-left: auto; margin-right: auto; }
+  .search-input, .sort-select { font-family: inherit; font-size: 13px; padding: 6px 11px; border-radius: 4px; border: 1px solid rgba(245,240,232,0.2); background: rgba(245,240,232,0.08); color: var(--cream); outline: none; }
+  .search-input { flex: 1; }
+  .search-input::placeholder { color: rgba(245,240,232,0.35); }
+  .sort-select option { background: var(--dark); }
+
+  /* ── Tabs ── */
+  .view-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+  .view-tab { font-family: inherit; font-size: 13px; padding: 9px 20px; border: none; background: none; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .view-tab.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 600; }
+  .view-tab:hover:not(.active) { color: var(--dark); }
+
+  /* ── Main ── */
+  main { max-width: 920px; margin: 0 auto; padding: 20px 16px; }
+
+  /* ── Category pills ── */
+  .cats { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .cat-btn { font-family: inherit; font-size: 12px; padding: 4px 12px; border-radius: 20px; border: 2px solid var(--border); background: transparent; color: #6b5a3a; cursor: pointer; transition: all 0.15s; }
+  .cat-btn.active { background: var(--gold); border-color: var(--gold); color: var(--cream); }
+  .cat-count { opacity: 0.6; font-size: 10px; }
+
+  /* ── Item cards ── */
+  #items-list { display: flex; flex-direction: column; gap: 8px; }
+  .item-card { background: var(--cream); border: 1px solid var(--border); border-left-width: 4px; border-radius: 6px; padding: 12px 15px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(44,36,22,0.05); }
+  .item-info { flex: 1; min-width: 120px; }
+  .item-name { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+  .item-meta { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; font-size: 11px; color: var(--muted); }
+  .tag { background: #ede3cc; padding: 1px 8px; border-radius: 10px; font-size: 10px; }
+  .tag-recipe { background: rgba(139,105,20,0.12); color: var(--gold); border: 1px solid rgba(139,105,20,0.2); cursor: pointer; }
+  .tag-recipe:hover { background: rgba(139,105,20,0.2); }
+  .qty-controls { display: flex; align-items: center; gap: 6px; }
+  .qty-btn { width: 25px; height: 25px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); cursor: pointer; font-size: 14px; font-family: inherit; color: #6b5a3a; }
+  .qty-btn:hover { background: var(--border); }
+  .qty-label { min-width: 50px; text-align: center; font-size: 14px; }
+  .qty-unit { font-size: 11px; color: var(--muted); }
+  .item-actions { display: flex; gap: 6px; }
+  .act-btn { font-family: inherit; font-size: 11px; padding: 3px 9px; border-radius: 4px; background: transparent; cursor: pointer; }
+  .act-edit { border: 1px solid var(--gold); color: var(--gold); }
+  .act-edit:hover { background: rgba(139,105,20,0.08); }
+  .act-del  { border: 1px solid var(--red); color: var(--red); }
+  .act-del:hover  { background: rgba(192,57,43,0.08); }
+
+  /* ── Recipe view ── */
+  #recipes-view { display: none; }
+  .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .recipe-card { background: var(--cream); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; position: relative; }
+  .recipe-card:hover { box-shadow: 0 4px 14px rgba(44,36,22,0.1); transform: translateY(-1px); }
+  .recipe-card-name { font-family: 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 400; margin-bottom: 6px; }
+  .recipe-card-meta { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .recipe-match-bar { height: 5px; border-radius: 3px; background: var(--border); margin-bottom: 6px; overflow: hidden; }
+  .recipe-match-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .recipe-match-label { font-size: 11px; font-weight: 600; }
+  .recipe-can-make { border-left: 4px solid var(--green); }
+  .recipe-partial  { border-left: 4px solid var(--orange); }
+  .recipe-missing  { border-left: 4px solid var(--border); }
+  .recipe-add-btn { display: flex; align-items: center; justify-content: center; background: transparent; border: 2px dashed var(--border); border-radius: 8px; padding: 28px; cursor: pointer; color: var(--muted); font-family: inherit; font-size: 13px; gap: 8px; transition: all 0.15s; }
+  .recipe-add-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(139,105,20,0.04); }
+
+  /* ── What can I make bar ── */
+  .make-bar { background: var(--dark); border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .make-bar-left { color: var(--gold-light); font-size: 13px; }
+  .make-count { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--cream); line-height: 1; }
+  .make-sub { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-pill { font-family: inherit; font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(245,240,232,0.25); background: transparent; color: rgba(245,240,232,0.6); cursor: pointer; transition: all 0.15s; }
+  .filter-pill.active { background: var(--gold); border-color: var(--gold); color: var(--cream); }
+
+  /* ── Modals ── */
+  .overlay { position: fixed; inset: 0; background: rgba(44,36,22,0.6); display: flex; align-items: flex-start; justify-content: center; z-index: 100; padding: 24px 16px; overflow-y: auto; }
+  .modal { background: var(--bg); border-radius: 8px; padding: 24px 24px 20px; width: 100%; max-width: 460px; border: 3px solid var(--gold); box-shadow: 0 8px 32px rgba(44,36,22,0.22); margin: auto; }
+  .modal-lg { max-width: 560px; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .modal-title { font-family: 'Playfair Display', Georgia, serif; font-size: 19px; font-weight: 400; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #6b5a3a; margin-bottom: 4px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 7px 10px; border: 1px solid var(--gold-light); border-radius: 4px; font-family: inherit; font-size: 13px; background: var(--cream); color: var(--dark); outline: none; }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); }
+  .row-fields { display: flex; gap: 10px; }
+  .row-fields .field { flex: 1; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .btn-cancel { font-family: inherit; font-size: 13px; padding: 7px 16px; border-radius: 4px; border: 1px solid var(--gold-light); background: transparent; color: #6b5a3a; cursor: pointer; }
+
+  /* scan banner */
+  .status-banner { padding: 8px 12px; border-radius: 5px; font-size: 12px; margin-bottom: 12px; }
+  .status-looking { background: #fff8e8; border: 1px solid var(--gold-light); color: var(--gold); }
+  .status-found   { background: #f0faf4; border: 1px solid var(--green); color: var(--green); }
+  .status-notfound{ background: #fdf0ef; border: 1px solid var(--red); color: var(--red); }
+
+  /* ── Ingredient editor ── */
+  .ing-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .ing-row { display: flex; gap: 6px; align-items: center; }
+  .ing-row input { flex: 1; }
+  .ing-row input.ing-qty { width: 64px; flex: none; }
+  .ing-row input.ing-unit { width: 76px; flex: none; }
+  .ing-del { width: 26px; height: 26px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--red); cursor: pointer; font-size: 14px; flex-shrink: 0; }
+  .ing-del:hover { background: rgba(192,57,43,0.08); }
+  .add-ing-btn { font-family: inherit; font-size: 12px; padding: 5px 12px; border: 1px dashed var(--border); border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
+  .add-ing-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── Recipe detail modal ── */
+  .ing-status-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .ing-status-row:last-child { border-bottom: none; }
+  .ing-have { color: var(--green); font-size: 11px; }
+  .ing-low  { color: var(--orange); font-size: 11px; }
+  .ing-none { color: var(--red); font-size: 11px; }
+  .recipe-detail-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* ── Summary ── */
+  .summary { margin-top: 20px; padding: 12px 16px; background: var(--dark); border-radius: 6px; color: var(--gold-light); font-size: 12px; display: flex; gap: 18px; flex-wrap: wrap; }
+  .summary .sep { color: rgba(245,240,232,0.3); }
+
+  /* ── Empty ── */
+  .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+  /* ── Scanner ── */
+  #scanner-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; }
+  #scanner-overlay.active { display: flex; }
+  .scanner-box { width: 100%; max-width: 460px; padding: 0 16px; }
+  .scanner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .scanner-label { color: var(--gold-light); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
+  .scanner-sub { color: rgba(245,240,232,0.4); font-size: 11px; margin-top: 2px; }
+  .viewfinder { position: relative; background: #000; border-radius: 10px; overflow: hidden; border: 2px solid rgba(201,168,76,0.3); }
+  #scanner-video { width: 100%; display: block; max-height: 300px; object-fit: cover; }
+  #scanner-canvas { display: none; }
+  .reticle { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .reticle-inner { width: 68%; max-width: 280px; height: 100px; position: relative; }
+  .corner { position: absolute; width: 20px; height: 20px; border-color: var(--gold-light); border-style: solid; }
+  .corner-tl { top:0;left:0; border-width:3px 0 0 3px; border-radius:3px 0 0 0; }
+  .corner-tr { top:0;right:0; border-width:3px 3px 0 0; border-radius:0 3px 0 0; }
+  .corner-bl { bottom:0;left:0; border-width:0 0 3px 3px; border-radius:0 0 0 3px; }
+  .corner-br { bottom:0;right:0; border-width:0 3px 3px 0; border-radius:0 0 3px 0; }
+  .scanline { position:absolute; left:4px; right:4px; height:2px; background:linear-gradient(90deg,transparent,var(--gold-light),transparent); animation:scanmove 1.8s ease-in-out infinite; }
+  @keyframes scanmove { 0%{top:8%} 50%{top:84%} 100%{top:8%} }
+  .scanner-status { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--gold-light); font-size:13px; background:rgba(0,0,0,0.4); }
+  .scanner-error { margin-top:12px; padding:10px 14px; background:rgba(192,57,43,0.18); border:1px solid rgba(192,57,43,0.4); border-radius:6px; color:#e07070; font-size:12px; }
+  .scanner-hint { color:rgba(245,240,232,0.38); font-size:11px; text-align:center; margin-top:10px; }
+  .manual-row { display:flex; gap:8px; margin-top:8px; }
+  .manual-row input { flex:1; padding:7px 10px; border:1px solid rgba(201,168,76,0.4); border-radius:4px; background:rgba(245,240,232,0.08); color:var(--cream); font-family:inherit; font-size:13px; outline:none; }
+  .manual-row input::placeholder { color:rgba(245,240,232,0.3); }
+
+  @media (max-width: 520px) {
+    header { padding: 16px 12px 12px; }
+    main { padding: 14px 10px; }
+    .modal { padding: 18px 14px 16px; }
+    .recipe-grid { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    body { background:#fff; color:#000; }
+    header,.cats,.summary,#modal-overlay,#scanner-overlay,.view-tabs,#recipes-view { display:none !important; }
+    main { padding:0; max-width:100%; }
+    #pantry-view { display:block !important; }
+    #items-list { display:block; }
+    .item-card { display:grid; grid-template-columns:1fr auto; border:none; border-bottom:1px solid #ddd; border-left:none!important; border-radius:0; padding:6px 2px; box-shadow:none; page-break-inside:avoid; }
+    .item-actions,.qty-btn { display:none; }
+    .qty-label { font-size:13px; }
+    #print-header { display:block!important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="header-label">Kitchen Inventory</div>
+      <h1>My Pantry</h1>
+    </div>
+    <div class="header-actions">
+      <span id="badge-expired" class="badge badge-red" style="display:none"></span>
+      <span id="badge-soon" class="badge badge-orange" style="display:none"></span>
+      <button class="btn btn-outline" onclick="openSync()">⇅ Sync</button>
+      <button class="btn btn-outline" onclick="printList()">⎙ Print</button>
+      <button class="btn btn-outline" onclick="openScanner()">▦ Scan</button>
+      <button class="btn btn-gold" id="header-add-btn" onclick="openAdd()">+ Add Item</button>
+    </div>
+  </div>
+  <div class="header-search">
+    <input class="search-input" id="search" placeholder="Search pantry…" oninput="renderPantry()">
+    <select class="sort-select" id="sort" onchange="renderPantry()">
+      <option value="name">Sort: Name</option>
+      <option value="expiry">Sort: Expiry</option>
+      <option value="category">Sort: Category</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <div id="print-header" style="display:none;margin-bottom:16px;">
+    <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:2px;">Kitchen Inventory</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;border-bottom:2px solid var(--gold);padding-bottom:6px;margin-bottom:4px;">My Pantry</div>
+    <div style="font-size:11px;color:#666;" id="print-date"></div>
+  </div>
+
+  <div class="view-tabs">
+    <button class="view-tab active" onclick="switchView('pantry')" id="tab-pantry">Pantry</button>
+    <button class="view-tab" onclick="switchView('recipes')" id="tab-recipes">Recipes <span id="recipe-count-badge"></span></button>
+  </div>
+
+  <!-- PANTRY VIEW -->
+  <div id="pantry-view">
+    <div class="cats" id="cats"></div>
+    <div id="items-list"></div>
+    <div class="summary" id="summary" style="display:none">
+      <span id="sum-items"></span><span class="sep">·</span>
+      <span id="sum-units"></span><span class="sep">·</span>
+      <span id="sum-cats"></span>
+    </div>
+  </div>
+
+  <!-- RECIPES VIEW -->
+  <div id="recipes-view">
+    <div class="make-bar">
+      <div>
+        <div class="make-count" id="make-count">0</div>
+        <div class="make-sub">recipes you can make right now</div>
+      </div>
+      <div class="filter-pills">
+        <button class="filter-pill active" onclick="setRecipeFilter('all',this)">All</button>
+        <button class="filter-pill" onclick="setRecipeFilter('can',this)">✓ Can Make</button>
+        <button class="filter-pill" onclick="setRecipeFilter('partial',this)">~ Partial</button>
+        <button class="filter-pill" onclick="setRecipeFilter('missing',this)">✗ Missing</button>
+      </div>
+    </div>
+    <div class="recipe-grid" id="recipe-grid"></div>
+  </div>
+</main>
+
+<!-- Item Modal -->
+<div class="overlay" id="item-modal" style="display:none" onclick="if(event.target===this)closeItemModal()">
+  <div class="modal">
+    <div id="scan-banner"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="item-modal-title">Add Item</div>
+      <button class="btn btn-outline" id="scan-instead-btn" onclick="closeThenScan()" style="font-size:11px;padding:4px 10px;">▦ Scan</button>
+    </div>
+    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Brown Rice" autocomplete="off"></div>
+    <div class="row-fields">
+      <div class="field" style="flex:2"><label>Category</label><select id="f-cat"></select></div>
+      <div class="field" style="flex:1"><label>Qty</label><input id="f-qty" type="number" min="0" value="1"></div>
+      <div class="field" style="flex:1.4"><label>Unit</label><select id="f-unit"></select></div>
+    </div>
+    <div class="field"><label>Expiry Date (optional)</label><input id="f-expiry" type="date"></div>
+    <div class="field"><label>Note (optional)</label><input id="f-note" placeholder="e.g. No salt added" autocomplete="off"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeItemModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="saveItem()" id="save-item-btn">Add to Pantry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recipe Edit Modal -->
+<div class="overlay" id="recipe-modal" style="display:none" onclick="if(event.target===this)closeRecipeModal()">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="recipe-modal-title">New Recipe</div>
+    </div>
+
+    <!-- URL import row -->
+    <div id="url-import-section" style="margin-bottom:16px;">
+      <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6b5a3a;margin-bottom:5px;">Import Recipe</div>
+      <div style="display:flex;gap:7px;margin-bottom:7px;">
+        <input id="r-url" placeholder="Paste recipe URL…" style="flex:1;padding:7px 10px;border:1px solid var(--gold-light);border-radius:4px;font-family:inherit;font-size:13px;background:var(--cream);color:var(--dark);outline:none;" onkeydown="if(event.key==='Enter')importFromUrl()">
+        <button class="btn btn-outline" id="import-btn" onclick="importFromUrl()" style="white-space:nowrap;">⇩ URL</button>
+      </div>
+      <!-- PDF upload -->
+      <div style="display:flex;gap:7px;align-items:center;">
+        <label id="pdf-label" style="flex:1;padding:7px 10px;border:1px dashed var(--border);border-radius:4px;font-size:13px;color:var(--muted);cursor:pointer;background:var(--cream);display:flex;align-items:center;gap:8px;" onmouseenter="this.style.borderColor='var(--gold-light)'" onmouseleave="this.style.borderColor='var(--border)'">
+          <span>📄</span><span id="pdf-label-text">Choose PDF file…</span>
+          <input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="importFromPdf(this)">
+        </label>
+        <button class="btn btn-outline" id="pdf-import-btn" onclick="document.getElementById('pdf-input').click()" style="white-space:nowrap;">⇩ PDF</button>
+      </div>
+      <div id="import-status" style="margin-top:7px;font-size:12px;display:none;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:12px 0 4px;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <div style="font-size:11px;color:var(--muted);">or enter manually</div>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+    </div>
+
+    <div class="field"><label>Recipe Name</label><input id="r-name" placeholder="e.g. Chickpea Curry" autocomplete="off"></div>
+    <div class="row-fields">
+      <div class="field"><label>Servings</label><input id="r-servings" type="number" min="1" value="4" style="width:100%"></div>
+      <div class="field" style="flex:2"><label>Notes (optional)</label><input id="r-notes" placeholder="e.g. 30 min, vegetarian"></div>
+    </div>
+    <div class="field">
+      <label>Ingredients</label>
+      <div class="ing-list" id="ing-list"></div>
+      <button class="add-ing-btn" onclick="addIngRow()">+ Add Ingredient</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeRecipeModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="saveRecipe()">Save Recipe</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recipe Detail Modal -->
+<div class="overlay" id="recipe-detail-modal" style="display:none" onclick="if(event.target===this)closeDetailModal()">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="detail-name"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;" id="detail-meta"></div>
+      </div>
+      <span id="detail-match-label" class="recipe-match-label"></span>
+    </div>
+    <div id="detail-ingredients"></div>
+    <div id="shopping-list-section" style="display:none;margin-top:14px;">
+      <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#6b5a3a;margin-bottom:8px;">🛒 Need to Buy</div>
+      <div id="shopping-list-items" style="background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:13px;line-height:1.9;"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-outline" onclick="copyShoppingList()" style="font-size:12px;">⎘ Copy List</button>
+        <span id="copy-confirm" style="font-size:12px;color:var(--green);align-self:center;display:none;">Copied!</span>
+      </div>
+    </div>
+    <div class="recipe-detail-actions">
+      <button class="btn btn-gold" onclick="cookRecipe()" id="cook-btn">✓ Use Ingredients</button>
+      <button class="btn btn-outline" onclick="editRecipeFromDetail()">Edit Recipe</button>
+      <button class="btn-cancel" onclick="deleteRecipeFromDetail()" style="color:var(--red);border-color:var(--red);">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sync Modal -->
+<div class="overlay" id="sync-modal" style="display:none" onclick="if(event.target===this)closeSyncModal()">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">Sync & Backup</div>
+      <button class="btn-cancel" onclick="closeSyncModal()">✕</button>
+    </div>
+
+    <!-- Export / Import -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#6b5a3a;margin-bottom:10px;">Export / Import JSON</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Save your pantry and recipes to a file, then load it on any device.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-gold" onclick="exportJSON()">⬇ Export Database</button>
+        <label style="cursor:pointer;">
+          <span class="btn btn-outline" style="display:inline-block;">⬆ Import Database</span>
+          <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="importJSON(this)">
+        </label>
+      </div>
+      <div id="import-json-status" style="font-size:12px;margin-top:8px;display:none;"></div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin-bottom:20px;"></div>
+
+    <!-- Google Drive sync -->
+    <div>
+      <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#6b5a3a;margin-bottom:8px;">Google Drive Sync</div>
+
+      <!-- Signed out state -->
+      <div id="gdrive-signout-view">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Sign in to automatically sync your pantry to Google Drive. Works across all your devices.</div>
+        <button id="gdrive-signin-btn" onclick="gdriveSignIn()" style="display:flex;align-items:center;gap:10px;padding:9px 16px;border:1px solid var(--border);border-radius:6px;background:var(--cream);cursor:pointer;font-family:inherit;font-size:13px;color:var(--dark);">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Sign in with Google
+        </button>
+      </div>
+
+      <!-- Signed in state -->
+      <div id="gdrive-signin-view" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--cream);border:1px solid var(--border);border-radius:6px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--cream);font-size:13px;font-weight:600;" id="gdrive-avatar">A</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;" id="gdrive-user-name">Arben</div>
+            <div style="font-size:11px;color:var(--muted);" id="gdrive-user-email">arben1562@gmail.com</div>
+          </div>
+          <button onclick="gdriveSignOut()" style="margin-left:auto;font-family:inherit;font-size:11px;padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;color:var(--muted);">Sign out</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <button class="btn btn-gold" onclick="gdriveSave()">☁ Save to Drive</button>
+          <button class="btn btn-outline" onclick="gdriveLoad()">☁ Load from Drive</button>
+        </div>
+        <div id="gdrive-status" style="font-size:12px;margin-top:4px;display:none;"></div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin:20px 0 14px;"></div>
+
+    <!-- Last saved info -->
+    <div style="font-size:11px;color:var(--muted);" id="sync-last-saved"></div>
+  </div>
+</div>
+
+<!-- Scanner -->
+<div id="scanner-overlay">
+  <div class="scanner-box">
+    <div class="scanner-header">
+      <div><div class="scanner-label">Barcode Scanner</div><div class="scanner-sub">EAN · UPC · CODE128 · QR</div></div>
+      <button class="btn btn-outline" onclick="closeScanner()" style="font-size:12px;">✕ Close</button>
+    </div>
+    <div class="viewfinder">
+      <video id="scanner-video" playsinline muted></video>
+      <canvas id="scanner-canvas"></canvas>
+      <div class="reticle" id="reticle" style="display:none">
+        <div class="reticle-inner">
+          <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+          <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+          <div class="scanline"></div>
+        </div>
+      </div>
+      <div class="scanner-status" id="scanner-status">Starting camera…</div>
+    </div>
+    <div class="scanner-error" id="scanner-error" style="display:none"></div>
+    <div class="scanner-hint">Hold barcode steady · or enter manually below</div>
+    <div class="manual-row">
+      <input id="manual-barcode" placeholder="Type / paste barcode…" onkeydown="if(event.key==='Enter')manualLookup()">
+      <button class="btn btn-outline" onclick="manualLookup()" style="font-size:12px;">Look Up</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const CATEGORIES = ["Grains","Canned","Dairy","Produce","Spices","Snacks","Beverages","Frozen","Other"];
+const UNITS = ["units","lbs","kg","oz","g","L","mL","cups","cans","bags","boxes","bunches","cloves","tbsp","tsp"];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let items   = JSON.parse(localStorage.getItem('pantry-items') || 'null') || [
+  {id:1,name:"Brown Rice",   category:"Grains",   qty:2,unit:"bags", expiry:"2026-08-01",note:""},
+  {id:2,name:"Chickpeas",    category:"Canned",   qty:4,unit:"cans", expiry:"2027-01-15",note:"No salt added"},
+  {id:3,name:"Olive Oil",    category:"Other",    qty:1,unit:"L",    expiry:"2026-06-10",note:""},
+  {id:4,name:"Cumin",        category:"Spices",   qty:1,unit:"units",expiry:"2025-12-01",note:""},
+  {id:5,name:"Oat Milk",     category:"Dairy",    qty:3,unit:"boxes",expiry:"2026-04-20",note:""},
+  {id:6,name:"Garlic",       category:"Produce",  qty:1,unit:"units",expiry:"",note:""},
+  {id:7,name:"Diced Tomatoes",category:"Canned",  qty:2,unit:"cans", expiry:"2027-06-01",note:""},
+  {id:8,name:"Coconut Milk", category:"Canned",   qty:1,unit:"cans", expiry:"2027-03-01",note:""},
+  {id:9,name:"Basmati Rice", category:"Grains",   qty:1,unit:"bags", expiry:"2026-10-01",note:""},
+];
+
+let recipes = JSON.parse(localStorage.getItem('pantry-recipes') || 'null') || [
+  {id:101, name:"Chickpea Curry", servings:4, notes:"30 min, vegetarian", ingredients:[
+    {name:"Chickpeas",   qty:2, unit:"cans"},
+    {name:"Diced Tomatoes",qty:1,unit:"cans"},
+    {name:"Coconut Milk",qty:1, unit:"cans"},
+    {name:"Cumin",       qty:1, unit:"tsp"},
+    {name:"Garlic",      qty:2, unit:"cloves"},
+    {name:"Olive Oil",   qty:2, unit:"tbsp"},
+  ]},
+  {id:102, name:"Rice & Beans", servings:2, notes:"Quick weeknight meal", ingredients:[
+    {name:"Brown Rice",  qty:1, unit:"cups"},
+    {name:"Chickpeas",   qty:1, unit:"cans"},
+    {name:"Olive Oil",   qty:1, unit:"tbsp"},
+    {name:"Cumin",       qty:1, unit:"tsp"},
+  ]},
+];
+
+let activeCat     = "All";
+let currentView   = "pantry";
+let editItemId    = null;
+let editRecipeId  = null;
+let detailRecipeId= null;
+let scanStatus    = null;
+let recipeFilter  = "all";
+
+// ── Persistence ────────────────────────────────────────────────────────────
+function saveAll() {
+  localStorage.setItem('pantry-items',   JSON.stringify(items));
+  localStorage.setItem('pantry-recipes', JSON.stringify(recipes));
+}
+
+// ── Utility ────────────────────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function expiryStatus(exp) {
+  if (!exp) return "ok";
+  const d = Math.ceil((new Date(exp)-new Date())/86400000);
+  if (d<0) return "expired"; if (d<=14) return "soon"; return "ok";
+}
+const SC = {expired:"#c0392b",soon:"#e67e22",ok:"#27ae60"};
+
+function guessCategory(labels="") {
+  const l=labels.toLowerCase();
+  if(l.match(/rice|pasta|bread|grain|cereal|oat|wheat|flour/)) return "Grains";
+  if(l.match(/can|tinned|canned|conserv/)) return "Canned";
+  if(l.match(/milk|cheese|yogurt|dairy|butter|cream/)) return "Dairy";
+  if(l.match(/fruit|vegetable|produce|fresh/)) return "Produce";
+  if(l.match(/spice|herb|seasoning|pepper|salt|cumin|garlic/)) return "Spices";
+  if(l.match(/snack|chip|crisp|cookie|biscuit|cracker/)) return "Snacks";
+  if(l.match(/water|juice|tea|coffee|drink|beverage|soda/)) return "Beverages";
+  if(l.match(/frozen|ice/)) return "Frozen";
+  return "Other";
+}
+
+// ── Recipe matching ────────────────────────────────────────────────────────
+function matchRecipe(recipe) {
+  // Returns { pct, canMake, missing: [{name,have,need}], partial: [...], ok: [...] }
+  const ings = recipe.ingredients || [];
+  if (!ings.length) return { pct:1, canMake:true, missing:[], partial:[], ok:[] };
+  let have=0, missing=[], partial=[], ok=[];
+  for (const ing of ings) {
+    const pantryItem = items.find(i => i.name.toLowerCase().trim() === ing.name.toLowerCase().trim());
+    if (!pantryItem || pantryItem.qty <= 0) {
+      missing.push(ing);
+    } else if (pantryItem.qty < ing.qty) {
+      partial.push({...ing, haveQty: pantryItem.qty});
+      have += 0.5;
+    } else {
+      ok.push(ing);
+      have++;
+    }
+  }
+  const pct = have / ings.length;
+  return { pct, canMake: missing.length===0 && partial.length===0, missing, partial, ok };
+}
+
+// ── View switching ─────────────────────────────────────────────────────────
+function switchView(v) {
+  currentView = v;
+  document.getElementById('pantry-view').style.display  = v==='pantry'  ? 'block' : 'none';
+  document.getElementById('recipes-view').style.display = v==='recipes' ? 'block' : 'none';
+  document.getElementById('tab-pantry').classList.toggle('active',  v==='pantry');
+  document.getElementById('tab-recipes').classList.toggle('active', v==='recipes');
+  document.getElementById('header-add-btn').textContent = v==='pantry' ? '+ Add Item' : '+ Add Recipe';
+  document.getElementById('header-add-btn').onclick = v==='pantry' ? openAdd : openNewRecipe;
+  if (v==='recipes') renderRecipes();
+}
+
+// ── Pantry render ──────────────────────────────────────────────────────────
+function renderPantry() {
+  const q    = document.getElementById('search').value.trim().toLowerCase();
+  const sort = document.getElementById('sort').value;
+  const allCats = ["All",...CATEGORIES];
+  const counts  = {};
+  allCats.forEach(c => counts[c] = c==="All" ? items.length : items.filter(i=>i.category===c).length);
+
+  // category tabs
+  document.getElementById('cats').innerHTML = allCats
+    .filter(c=>counts[c]>0||c==="All")
+    .map(c=>`<button class="cat-btn${c===activeCat?' active':''}" onclick="setCat('${c}')">${esc(c)} <span class="cat-count">${counts[c]}</span></button>`)
+    .join('');
+
+  let list = items.slice();
+  if (activeCat!=="All") list=list.filter(i=>i.category===activeCat);
+  if (q) list=list.filter(i=>i.name.toLowerCase().includes(q));
+  list.sort((a,b)=>{
+    if(sort==="name")     return a.name.localeCompare(b.name);
+    if(sort==="expiry")   { if(!a.expiry)return 1; if(!b.expiry)return -1; return new Date(a.expiry)-new Date(b.expiry); }
+    if(sort==="category") return a.category.localeCompare(b.category);
+  });
+
+  // find recipe count per item
+  const itemRecipes = {};
+  recipes.forEach(r => {
+    (r.ingredients||[]).forEach(ing => {
+      const key = ing.name.toLowerCase().trim();
+      itemRecipes[key] = (itemRecipes[key]||[]);
+      if (!itemRecipes[key].includes(r.id)) itemRecipes[key].push(r.id);
+    });
+  });
+
+  const el = document.getElementById('items-list');
+  if (!list.length) {
+    el.innerHTML=`<div class="empty"><div class="empty-icon">🧺</div><div>Nothing here</div><div style="font-size:12px;margin-top:4px;opacity:.7">Add an item or scan a barcode</div></div>`;
+  } else {
+    el.innerHTML = list.map(item=>{
+      const st=expiryStatus(item.expiry), col=SC[st];
+      const expLabel=item.expiry?(st==="expired"?`⚠ Expired`:st==="soon"?`⏰ ${item.expiry}`:`✓ ${item.expiry}`):'';
+      const rIds = itemRecipes[item.name.toLowerCase().trim()]||[];
+      const recipeTag = rIds.length
+        ? `<span class="tag tag-recipe" onclick="viewItemRecipes(${item.id})" title="Used in ${rIds.length} recipe(s)">🍳 ${rIds.length} recipe${rIds.length>1?'s':''}</span>`
+        : '';
+      return `<div class="item-card" style="border-left-color:${col}">
+        <div class="item-info">
+          <div class="item-name">${esc(item.name)}</div>
+          <div class="item-meta">
+            <span class="tag">${esc(item.category)}</span>
+            ${item.expiry?`<span style="color:${col}">${expLabel}</span>`:''}
+            ${recipeTag}
+            ${item.note?`<span style="font-style:italic">${esc(item.note)}</span>`:''}
+          </div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="adjustQty(${item.id},-1)">−</button>
+          <span class="qty-label">${item.qty} <span class="qty-unit">${esc(item.unit)}</span></span>
+          <button class="qty-btn" onclick="adjustQty(${item.id},1)">+</button>
+        </div>
+        <div class="item-actions">
+          <button class="act-btn act-edit" onclick="openEdit(${item.id})">Edit</button>
+          <button class="act-btn act-del"  onclick="deleteItem(${item.id})">Del</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // badges
+  const exp  = items.filter(i=>expiryStatus(i.expiry)==="expired").length;
+  const soon = items.filter(i=>expiryStatus(i.expiry)==="soon").length;
+  const be=document.getElementById('badge-expired'), bs=document.getElementById('badge-soon');
+  be.style.display=exp>0?'':'none'; be.textContent=`⚠ ${exp} expired`;
+  bs.style.display=soon>0?'':'none'; bs.textContent=`⏰ ${soon} expiring soon`;
+
+  // summary
+  const sum=document.getElementById('summary');
+  sum.style.display=items.length>0?'flex':'none';
+  document.getElementById('sum-items').textContent=`${items.length} items`;
+  document.getElementById('sum-units').textContent=`${items.reduce((s,i)=>s+(+i.qty||0),0)} units`;
+  document.getElementById('sum-cats').textContent=`${CATEGORIES.filter(c=>counts[c]>0).length} categories`;
+
+  // recipe tab badge
+  const canMake = recipes.filter(r=>matchRecipe(r).canMake).length;
+  document.getElementById('recipe-count-badge').textContent = recipes.length ? `(${recipes.length})` : '';
+}
+
+function setCat(c) { activeCat=c; renderPantry(); }
+
+// ── Recipes render ─────────────────────────────────────────────────────────
+function renderRecipes() {
+  const matches = recipes.map(r=>({...r, match:matchRecipe(r)}));
+  const canMakeCount = matches.filter(m=>m.match.canMake).length;
+  document.getElementById('make-count').textContent = canMakeCount;
+
+  let filtered = matches;
+  if (recipeFilter==='can')     filtered = matches.filter(m=>m.match.canMake);
+  else if (recipeFilter==='partial') filtered = matches.filter(m=>!m.match.canMake && m.match.pct>0);
+  else if (recipeFilter==='missing') filtered = matches.filter(m=>m.match.pct===0);
+
+  const grid = document.getElementById('recipe-grid');
+  const cards = filtered.map(r=>{
+    const pct   = Math.round(r.match.pct*100);
+    const cls   = r.match.canMake ? 'recipe-can-make' : r.match.pct>0 ? 'recipe-partial' : 'recipe-missing';
+    const fillColor = r.match.canMake ? 'var(--green)' : r.match.pct>0 ? 'var(--orange)' : 'var(--border)';
+    const matchLabel = r.match.canMake
+      ? `<span style="color:var(--green)">✓ Ready to cook</span>`
+      : `<span style="color:${r.match.pct>0?'var(--orange)':'var(--muted)'}">${pct}% stocked · ${r.match.missing.length+r.match.partial.length} missing</span>`;
+    return `<div class="recipe-card ${cls}" onclick="openRecipeDetail(${r.id})">
+      <div class="recipe-card-name">${esc(r.name)}</div>
+      <div class="recipe-card-meta">${r.servings||''} servings${r.notes?` · ${esc(r.notes)}`:''} · ${(r.ingredients||[]).length} ingredients</div>
+      <div class="recipe-match-bar"><div class="recipe-match-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+      <div class="recipe-match-label">${matchLabel}</div>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = cards + `<button class="recipe-add-btn" onclick="openNewRecipe()">＋ Add Recipe</button>`;
+}
+
+function setRecipeFilter(f, btn) {
+  recipeFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRecipes();
+}
+
+// ── Item used in recipes ───────────────────────────────────────────────────
+function viewItemRecipes(itemId) {
+  const item = items.find(i=>i.id===itemId);
+  if (!item) return;
+  const relatedRecipes = recipes.filter(r=>(r.ingredients||[]).some(ing=>ing.name.toLowerCase().trim()===item.name.toLowerCase().trim()));
+  if (!relatedRecipes.length) return;
+  if (relatedRecipes.length===1) { openRecipeDetail(relatedRecipes[0].id); return; }
+  switchView('recipes');
+}
+
+// ── Recipe detail ──────────────────────────────────────────────────────────
+function openRecipeDetail(id) {
+  const recipe = recipes.find(r=>r.id===id);
+  if (!recipe) return;
+  detailRecipeId = id;
+  const m = matchRecipe(recipe);
+
+  document.getElementById('detail-name').textContent = recipe.name;
+  document.getElementById('detail-meta').textContent = `${recipe.servings||''} servings${recipe.notes?' · '+recipe.notes:''}`;
+
+  const pct = Math.round(m.pct*100);
+  const label = m.canMake
+    ? `<span style="color:var(--green)">✓ Ready to cook</span>`
+    : `<span style="color:var(--orange)">${pct}% stocked</span>`;
+  document.getElementById('detail-match-label').innerHTML = label;
+
+  const ingRows = (recipe.ingredients||[]).map(ing=>{
+    const pantryItem = items.find(i=>i.name.toLowerCase().trim()===ing.name.toLowerCase().trim());
+    let statusHtml='';
+    if (!pantryItem||pantryItem.qty<=0) {
+      statusHtml=`<span class="ing-none">✗ Not in pantry</span>`;
+    } else if (pantryItem.qty<ing.qty) {
+      statusHtml=`<span class="ing-low">~ Have ${pantryItem.qty} ${pantryItem.unit} (need ${ing.qty})</span>`;
+    } else {
+      statusHtml=`<span class="ing-have">✓ Have ${pantryItem.qty} ${pantryItem.unit}</span>`;
+    }
+    return `<div class="ing-status-row">
+      <span><strong>${esc(ing.name)}</strong> — ${ing.qty} ${esc(ing.unit)}</span>
+      ${statusHtml}
+    </div>`;
+  }).join('');
+  document.getElementById('detail-ingredients').innerHTML = ingRows;
+
+  // Shopping list — missing + partial
+  const toBuy = [
+    ...m.missing.map(ing => ({ name: ing.name, qty: ing.qty, unit: ing.unit, short: false })),
+    ...m.partial.map(ing => {
+      const pantryItem = items.find(i=>i.name.toLowerCase().trim()===ing.name.toLowerCase().trim());
+      const still = Math.max(0, ing.qty - (pantryItem?.qty||0));
+      return { name: ing.name, qty: still, unit: ing.unit, short: true };
+    }),
+  ];
+
+  const shopSection = document.getElementById('shopping-list-section');
+  if (toBuy.length > 0) {
+    shopSection.style.display = '';
+    document.getElementById('shopping-list-items').innerHTML = toBuy.map(item =>
+      `<div style="display:flex;justify-content:space-between;">
+        <span>${esc(item.name)}${item.short?' <span style="font-size:11px;color:var(--muted)">(short)</span>':''}</span>
+        <span style="color:var(--muted);font-size:12px;">${item.qty} ${esc(item.unit)}</span>
+      </div>`
+    ).join('');
+  } else {
+    shopSection.style.display = 'none';
+  }
+
+  document.getElementById('copy-confirm').style.display = 'none';
+  document.getElementById('cook-btn').disabled = !m.canMake;
+  document.getElementById('cook-btn').style.opacity = m.canMake ? '1' : '0.4';
+  document.getElementById('recipe-detail-modal').style.display = 'flex';
+}
+
+function closeDetailModal() {
+  document.getElementById('recipe-detail-modal').style.display = 'none';
+  detailRecipeId = null;
+}
+
+function cookRecipe() {
+  const recipe = recipes.find(r=>r.id===detailRecipeId);
+  if (!recipe) return;
+  const m = matchRecipe(recipe);
+  if (!m.canMake) return;
+  if (!confirm(`Use ingredients for "${recipe.name}"? This will reduce pantry quantities.`)) return;
+  recipe.ingredients.forEach(ing=>{
+    const idx = items.findIndex(i=>i.name.toLowerCase().trim()===ing.name.toLowerCase().trim());
+    if (idx>=0) items[idx] = {...items[idx], qty: Math.max(0, items[idx].qty - ing.qty)};
+  });
+  saveAll();
+  closeDetailModal();
+  renderPantry();
+  renderRecipes();
+  alert(`Cooked! Pantry updated.`);
+}
+
+function editRecipeFromDetail() {
+  const id = detailRecipeId;
+  closeDetailModal();
+  openEditRecipe(id);
+}
+
+function deleteRecipeFromDetail() {
+  const recipe = recipes.find(r=>r.id===detailRecipeId);
+  if (!recipe) return;
+  if (!confirm(`Delete "${recipe.name}"?`)) return;
+  recipes = recipes.filter(r=>r.id!==detailRecipeId);
+  saveAll();
+  closeDetailModal();
+  renderRecipes();
+  renderPantry();
+}
+
+// ── Recipe add/edit modal ──────────────────────────────────────────────────
+let currentIngredients = [];
+
+function openNewRecipe() {
+  editRecipeId = null;
+  currentIngredients = [{name:'',qty:1,unit:'units'}];
+  document.getElementById('r-name').value='';
+  document.getElementById('r-servings').value=4;
+  document.getElementById('r-notes').value='';
+  document.getElementById('r-url').value='';
+  document.getElementById('pdf-label-text').textContent='Choose PDF file…';
+  document.getElementById('import-status').style.display='none';
+  document.getElementById('recipe-modal-title').textContent='New Recipe';
+  renderIngList();
+  document.getElementById('recipe-modal').style.display='flex';
+  document.getElementById('r-url').focus();
+  switchView('recipes');
+}
+
+function openEditRecipe(id) {
+  const recipe = recipes.find(r=>r.id===id);
+  if (!recipe) return;
+  editRecipeId = id;
+  currentIngredients = (recipe.ingredients||[]).map(i=>({...i}));
+  if (!currentIngredients.length) currentIngredients=[{name:'',qty:1,unit:'units'}];
+  document.getElementById('r-name').value = recipe.name||'';
+  document.getElementById('r-servings').value = recipe.servings||4;
+  document.getElementById('r-notes').value = recipe.notes||'';
+  document.getElementById('recipe-modal-title').textContent='Edit Recipe';
+  renderIngList();
+  document.getElementById('recipe-modal').style.display='flex';
+}
+
+function closeRecipeModal() { document.getElementById('recipe-modal').style.display='none'; }
+
+function renderIngList() {
+  document.getElementById('ing-list').innerHTML = currentIngredients.map((ing,i)=>`
+    <div class="ing-row">
+      <input class="ing-qty" type="number" min="0" step="0.1" value="${ing.qty||1}" oninput="currentIngredients[${i}].qty=parseFloat(this.value)||0" placeholder="Qty">
+      <input class="ing-unit" value="${esc(ing.unit||'units')}" oninput="currentIngredients[${i}].unit=this.value" placeholder="Unit" list="unit-suggestions">
+      <input value="${esc(ing.name)}" oninput="currentIngredients[${i}].name=this.value" placeholder="Ingredient name" autocomplete="off" list="pantry-suggestions">
+      <button class="ing-del" onclick="removeIng(${i})">×</button>
+    </div>`).join('')
+  + `<datalist id="pantry-suggestions">${items.map(i=>`<option value="${esc(i.name)}">`).join('')}</datalist>`
+  + `<datalist id="unit-suggestions">${UNITS.map(u=>`<option value="${u}">`).join('')}</datalist>`;
+}
+
+function addIngRow() {
+  currentIngredients.push({name:'',qty:1,unit:'units'});
+  renderIngList();
+  // focus the last name input
+  const rows = document.querySelectorAll('.ing-row');
+  if (rows.length) rows[rows.length-1].querySelector('input[placeholder="Ingredient name"]').focus();
+}
+
+function removeIng(i) {
+  currentIngredients.splice(i,1);
+  if (!currentIngredients.length) currentIngredients=[{name:'',qty:1,unit:'units'}];
+  renderIngList();
+}
+
+function saveRecipe() {
+  const name = document.getElementById('r-name').value.trim();
+  if (!name) { document.getElementById('r-name').focus(); return; }
+  const ings = currentIngredients.filter(i=>i.name.trim());
+  const recipe = {
+    name,
+    servings: parseInt(document.getElementById('r-servings').value)||4,
+    notes: document.getElementById('r-notes').value.trim(),
+    ingredients: ings,
+  };
+  if (editRecipeId!==null) {
+    recipes = recipes.map(r=>r.id===editRecipeId ? {...recipe,id:editRecipeId} : r);
+  } else {
+    recipes = [...recipes, {...recipe, id:Date.now()}];
+  }
+  saveAll();
+  closeRecipeModal();
+  renderRecipes();
+  renderPantry();
+}
+
+// ── Item CRUD ──────────────────────────────────────────────────────────────
+function populateItemSelects() {
+  document.getElementById('f-cat').innerHTML  = CATEGORIES.map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('f-unit').innerHTML = UNITS.map(u=>`<option>${u}</option>`).join('');
+}
+
+function openAdd() {
+  editItemId=null; scanStatus=null;
+  populateItemSelects();
+  setItemForm({name:'',category:'Other',qty:1,unit:'units',expiry:'',note:''});
+  document.getElementById('item-modal-title').textContent='Add Item';
+  document.getElementById('save-item-btn').textContent='Add to Pantry';
+  document.getElementById('scan-instead-btn').style.display='';
+  updateScanBanner();
+  document.getElementById('item-modal').style.display='flex';
+  document.getElementById('f-name').focus();
+}
+
+function openEdit(id) {
+  editItemId=id; scanStatus=null;
+  const item=items.find(i=>i.id===id);
+  populateItemSelects();
+  setItemForm(item);
+  document.getElementById('item-modal-title').textContent='Edit Item';
+  document.getElementById('save-item-btn').textContent='Save Changes';
+  document.getElementById('scan-instead-btn').style.display='none';
+  updateScanBanner();
+  document.getElementById('item-modal').style.display='flex';
+}
+
+function setItemForm(v) {
+  document.getElementById('f-name').value   = v.name||'';
+  document.getElementById('f-cat').value    = v.category||'Other';
+  document.getElementById('f-qty').value    = v.qty??1;
+  document.getElementById('f-unit').value   = v.unit||'units';
+  document.getElementById('f-expiry').value = v.expiry||'';
+  document.getElementById('f-note').value   = v.note||'';
+}
+
+function getItemForm() {
+  return {
+    name:     document.getElementById('f-name').value.trim(),
+    category: document.getElementById('f-cat').value,
+    qty:      parseFloat(document.getElementById('f-qty').value)||0,
+    unit:     document.getElementById('f-unit').value,
+    expiry:   document.getElementById('f-expiry').value,
+    note:     document.getElementById('f-note').value.trim(),
+  };
+}
+
+function saveItem() {
+  const v=getItemForm();
+  if(!v.name){document.getElementById('f-name').focus();return;}
+  if(editItemId!==null) items=items.map(i=>i.id===editItemId?{...v,id:editItemId}:i);
+  else items=[...items,{...v,id:Date.now()}];
+  saveAll(); closeItemModal(); renderPantry();
+  if (currentView==='recipes') renderRecipes();
+}
+
+function closeItemModal() { document.getElementById('item-modal').style.display='none'; scanStatus=null; }
+
+function adjustQty(id,delta) {
+  items=items.map(i=>i.id===id?{...i,qty:Math.max(0,i.qty+delta)}:i);
+  saveAll(); renderPantry();
+}
+
+function deleteItem(id) {
+  if(!confirm('Remove this item?'))return;
+  items=items.filter(i=>i.id!==id);
+  saveAll(); renderPantry();
+}
+
+function updateScanBanner() {
+  const el=document.getElementById('scan-banner');
+  if(!scanStatus){el.innerHTML='';return;}
+  const m={looking:['status-looking','🔍 Looking up in Open Food Facts…'],found:['status-found','✓ Product found — review and save'],notfound:['status-notfound','Not found — fill in manually']};
+  const[cls,txt]=m[scanStatus];
+  el.innerHTML=`<div class="status-banner ${cls}">${txt}</div>`;
+}
+
+// ── Print ──────────────────────────────────────────────────────────────────
+function printList() {
+  document.getElementById('print-date').textContent='Printed '+new Date().toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+  const prev=activeCat; activeCat='All';
+  document.getElementById('sort').value='category';
+  renderPantry();
+  window.print();
+  activeCat=prev; document.getElementById('sort').value='name'; renderPantry();
+}
+
+// ── Scanner ────────────────────────────────────────────────────────────────
+let scanStream=null, scanRaf=null, scanActive=false;
+
+function setStatus(msg) {
+  const el=document.getElementById('scanner-status');
+  el.style.display=msg?'flex':'none'; el.textContent=msg;
+}
+
+function openScanner() {
+  document.getElementById('scanner-overlay').classList.add('active');
+  document.getElementById('scanner-error').style.display='none';
+  document.getElementById('reticle').style.display='none';
+  setStatus('Starting camera…');
+  document.getElementById('manual-barcode').value='';
+  startCamera();
+}
+
+function closeScanner() { stopCamera(); document.getElementById('scanner-overlay').classList.remove('active'); }
+function closeThenScan() { closeItemModal(); openScanner(); }
+
+async function startCamera() {
+  scanActive=true;
+  try {
+    let stream;
+    try {
+      const devices=await navigator.mediaDevices.enumerateDevices();
+      const cameras=devices.filter(d=>d.kind==='videoinput');
+      const backCam=cameras.slice().reverse().find(d=>/back|rear|environment/i.test(d.label))||cameras[cameras.length-1];
+      if(backCam&&backCam.deviceId) stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:backCam.deviceId},width:{ideal:1280},height:{ideal:720}}});
+    } catch(_){}
+    if(!stream) stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+    if(!scanActive){stream.getTracks().forEach(t=>t.stop());return;}
+    scanStream=stream;
+    const video=document.getElementById('scanner-video');
+    video.srcObject=stream; await video.play();
+    setStatus(''); document.getElementById('reticle').style.display='flex';
+    if('BarcodeDetector' in window) runNativeDetector(video);
+    else { setStatus('Loading decoder…'); await loadZXing(); setStatus(''); runZXing(video); }
+  } catch(err) {
+    setStatus('');
+    const errEl=document.getElementById('scanner-error');
+    errEl.style.display='';
+    errEl.textContent=err.name==='NotAllowedError'?'Camera permission denied. Use manual entry below.':`Camera error: ${err.message}. Use manual entry below.`;
+  }
+}
+
+async function runNativeDetector(video) {
+  let supported=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code','data_matrix'];
+  try{supported=await BarcodeDetector.getSupportedFormats();}catch(_){}
+  const detector=new BarcodeDetector({formats:supported});
+  async function tick(){
+    if(!scanActive)return;
+    if(video.readyState===video.HAVE_ENOUGH_DATA){
+      try{const r=await detector.detect(video);if(r&&r.length){closeScanner();handleBarcode(r[0].rawValue);return;}}catch(_){}
+    }
+    setTimeout(()=>{if(scanActive)scanRaf=requestAnimationFrame(tick);},100);
+  }
+  scanRaf=requestAnimationFrame(tick);
+}
+
+function loadZXing(){
+  if(window.ZXing)return Promise.resolve();
+  return new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+}
+
+function runZXing(video) {
+  const hints=new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E,ZXing.BarcodeFormat.CODE_128,ZXing.BarcodeFormat.CODE_39,ZXing.BarcodeFormat.QR_CODE]);
+  hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
+  const reader=new ZXing.MultiFormatReader(); reader.setHints(hints);
+  const canvas=document.getElementById('scanner-canvas');
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const DECODE_W=640;
+  const interval=setInterval(()=>{
+    if(!scanActive){clearInterval(interval);return;}
+    if(video.readyState<video.HAVE_ENOUGH_DATA)return;
+    const vw=video.videoWidth,vh=video.videoHeight; if(!vw||!vh)return;
+    const scale=DECODE_W/vw; canvas.width=DECODE_W; canvas.height=Math.round(vh*scale);
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    try{
+      const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const lum=new ZXing.RGBLuminanceSource(img.data,canvas.width,canvas.height);
+      const bmp=new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
+      const result=reader.decode(bmp);
+      if(result){closeScanner();handleBarcode(result.getText());}
+    }catch(_){}
+  },100);
+  scanRaf=interval;
+}
+
+function stopCamera() {
+  scanActive=false;
+  if(scanRaf){cancelAnimationFrame(scanRaf);clearInterval(scanRaf);scanRaf=null;}
+  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
+}
+
+function manualLookup(){const code=document.getElementById('manual-barcode').value.trim();if(!code)return;closeScanner();handleBarcode(code);}
+
+async function handleBarcode(code) {
+  scanStatus='looking';
+  populateItemSelects();
+  setItemForm({name:'',category:'Other',qty:1,unit:'units',expiry:'',note:`Barcode: ${code}`});
+  editItemId=null;
+  document.getElementById('item-modal-title').textContent='Add Item';
+  document.getElementById('save-item-btn').textContent='Add to Pantry';
+  document.getElementById('scan-instead-btn').style.display='';
+  updateScanBanner();
+  document.getElementById('item-modal').style.display='flex';
+  try {
+    const res=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}?fields=product_name,brands,categories_tags,quantity`);
+    const data=await res.json();
+    if(data.status===1&&data.product){
+      const p=data.product;
+      scanStatus='found';
+      setItemForm({name:(p.product_name||p.brands||`Product ${code}`).trim(),category:guessCategory((p.categories_tags||[]).join(' ')),qty:1,unit:'units',expiry:'',note:(p.brands&&p.product_name?p.brands.trim():'')});
+    } else scanStatus='notfound';
+  } catch(_){scanStatus='notfound';}
+  updateScanBanner();
+  document.getElementById('f-name').focus();
+}
+
+function copyShoppingList() {
+  const recipe = recipes.find(r=>r.id===detailRecipeId);
+  if (!recipe) return;
+  const m = matchRecipe(recipe);
+  const toBuy = [
+    ...m.missing.map(i=>`${i.name} — ${i.qty} ${i.unit}`),
+    ...m.partial.map(i=>{
+      const p=items.find(pi=>pi.name.toLowerCase().trim()===i.name.toLowerCase().trim());
+      const still=Math.max(0,i.qty-(p?.qty||0));
+      return `${i.name} — ${still} ${i.unit} (short)`;
+    }),
+  ];
+  const text = `Shopping list for ${recipe.name}:\n${toBuy.map(l=>`• ${l}`).join('\n')}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const el=document.getElementById('copy-confirm');
+    el.style.display='inline';
+    setTimeout(()=>el.style.display='none', 2000);
+  });
+}
+
+// ── URL Recipe Import ─────────────────────────────────────────────────────
+function setImportStatus(msg, type) {
+  const el = document.getElementById('import-status');
+  el.style.display = msg ? '' : 'none';
+  el.textContent = msg;
+  el.style.color = type==='error' ? 'var(--red)' : type==='ok' ? 'var(--green)' : 'var(--gold)';
+}
+
+function applyExtractedRecipe(recipe, sourceName) {
+  document.getElementById('r-name').value     = recipe.name || '';
+  document.getElementById('r-servings').value = recipe.servings || 4;
+  document.getElementById('r-notes').value    = recipe.notes || '';
+  currentIngredients = (recipe.ingredients || []).map(i => ({
+    name: String(i.name||'').trim(),
+    qty:  parseFloat(i.qty) || 1,
+    unit: String(i.unit||'units').trim(),
+  })).filter(i => i.name);
+  if (!currentIngredients.length) currentIngredients = [{name:'',qty:1,unit:'units'}];
+  renderIngList();
+  setImportStatus(`✓ Imported "${recipe.name}" — ${currentIngredients.length} ingredients`, 'ok');
+}
+
+const EXTRACT_PROMPT = `Extract the recipe from this content. Return ONLY a JSON object, no explanation:
+{
+  "name": "Recipe Name",
+  "servings": 4,
+  "notes": "brief description or cook time",
+  "ingredients": [
+    {"name": "ingredient name", "qty": 1, "unit": "units"}
+  ]
+}
+Use simple units: units, cups, tbsp, tsp, oz, g, lbs, kg, L, mL, cans, bags, cloves, bunches. Use numbers for qty.`;
+
+async function importFromPdf(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  document.getElementById('pdf-label-text').textContent = file.name;
+  document.getElementById('pdf-import-btn').disabled = true;
+  setImportStatus('Reading PDF…', 'loading');
+
+  try {
+    const base64 = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result.split(',')[1]);
+      reader.onerror = () => rej(new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+
+    setImportStatus('Extracting recipe with AI…', 'loading');
+
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+            { type: 'text', text: EXTRACT_PROMPT }
+          ]
+        }]
+      })
+    });
+
+    const data = await apiRes.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+    const text = (data.content||[]).map(b=>b.text||'').join('');
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Could not parse recipe from PDF. Try a different file.');
+    applyExtractedRecipe(JSON.parse(match[0]), file.name);
+  } catch(err) {
+    setImportStatus(err.message || 'Import failed.', 'error');
+  } finally {
+    document.getElementById('pdf-import-btn').disabled = false;
+    input.value = '';
+  }
+}
+
+async function importFromUrl() {
+  const url = document.getElementById('r-url').value.trim();
+  if (!url) return;
+
+  const btn = document.getElementById('import-btn');
+  btn.disabled = true;
+  btn.textContent = '…';
+  setImportStatus('Fetching page…', 'loading');
+
+  try {
+    let html = '';
+    try {
+      const proxyRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      html = (await proxyRes.json()).contents || '';
+    } catch(e) {
+      throw new Error('Could not fetch the page. Check the URL and try again.');
+    }
+    if (!html) throw new Error('Page returned empty content.');
+
+    const stripped = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+      .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+      .replace(/<header[\s\S]*?<\/header>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s{3,}/g, '\n')
+      .trim()
+      .slice(0, 12000);
+
+    setImportStatus('Extracting recipe with AI…', 'loading');
+
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: `${EXTRACT_PROMPT}\n\nWebpage text:\n${stripped}` }]
+      })
+    });
+
+    const data = await apiRes.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+    const text = (data.content||[]).map(b=>b.text||'').join('');
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Could not parse recipe. Try a different URL or enter manually.');
+    applyExtractedRecipe(JSON.parse(match[0]), url);
+    document.getElementById('r-url').value = '';
+  } catch(err) {
+    setImportStatus(err.message || 'Import failed.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⇩ URL';
+  }
+}
+
+// ── Sync & Backup ─────────────────────────────────────────────────────────
+function openSync() {
+  const saved = localStorage.getItem('pantry-last-saved');
+  document.getElementById('sync-last-saved').textContent = saved
+    ? `Last saved: ${saved}` : 'No backup recorded yet.';
+  document.getElementById('import-json-status').style.display = 'none';
+  document.getElementById('sync-modal').style.display = 'flex';
+}
+
+function closeSyncModal() {
+  document.getElementById('sync-modal').style.display = 'none';
+}
+
+function exportJSON() {
+  const db = { version: 1, exported: new Date().toISOString(), items, recipes };
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pantry-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  const ts = new Date().toLocaleString();
+  localStorage.setItem('pantry-last-saved', ts);
+  document.getElementById('sync-last-saved').textContent = `Last saved: ${ts}`;
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('import-json-status');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const db = JSON.parse(e.target.result);
+      if (!db.items || !db.recipes) throw new Error('Invalid backup file.');
+      if (!confirm(`This will replace your current pantry (${items.length} items, ${recipes.length} recipes) with the backup (${db.items.length} items, ${db.recipes.length} recipes). Continue?`)) return;
+      items = db.items;
+      recipes = db.recipes;
+      saveAll();
+      renderPantry();
+      if (currentView === 'recipes') renderRecipes();
+      statusEl.style.display = '';
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = `✓ Loaded ${items.length} items and ${recipes.length} recipes.`;
+    } catch(err) {
+      statusEl.style.display = '';
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = `Error: ${err.message}`;
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── Google Drive sync ──────────────────────────────────────────────────────
+// Uses Google Identity Services (OAuth 2.0 implicit flow — no backend needed)
+// Client ID is a public OAuth client for installed/SPA apps — user sees Google's own consent screen
+const GDRIVE_CLIENT_ID = ''; // Set your own at console.cloud.google.com — see instructions below
+const GDRIVE_SCOPE     = 'https://www.googleapis.com/auth/drive.file';
+const GDRIVE_FILENAME  = 'pantry-tracker-db.json';
+
+let gdriveToken  = localStorage.getItem('gdrive-token')  || null;
+let gdriveFileId = localStorage.getItem('gdrive-file-id') || null;
+let gdriveEmail  = localStorage.getItem('gdrive-email')   || null;
+
+function gdriveUpdateUI() {
+  const signedIn = !!gdriveToken;
+  document.getElementById('gdrive-signout-view').style.display = signedIn ? 'none' : '';
+  document.getElementById('gdrive-signin-view').style.display  = signedIn ? ''     : 'none';
+  if (signedIn && gdriveEmail) {
+    document.getElementById('gdrive-user-email').textContent = gdriveEmail;
+    document.getElementById('gdrive-user-name').textContent  = gdriveEmail.split('@')[0];
+    document.getElementById('gdrive-avatar').textContent     = gdriveEmail[0].toUpperCase();
+  }
+}
+
+function gdriveSignIn() {
+  if (!GDRIVE_CLIENT_ID) {
+    // Show setup instructions if no client ID configured
+    gdriveShowSetupNote();
+    return;
+  }
+  // Google Identity Services token client (implicit flow)
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GDRIVE_CLIENT_ID,
+    scope: GDRIVE_SCOPE,
+    hint: 'arben1562@gmail.com',
+    callback: async (resp) => {
+      if (resp.error) { gdriveStatus('Sign-in failed: ' + resp.error, 'error'); return; }
+      gdriveToken = resp.access_token;
+      localStorage.setItem('gdrive-token', gdriveToken);
+      // Get user email
+      try {
+        const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: 'Bearer ' + gdriveToken }
+        });
+        const u = await r.json();
+        gdriveEmail = u.email || 'arben1562@gmail.com';
+        localStorage.setItem('gdrive-email', gdriveEmail);
+      } catch(_) { gdriveEmail = 'arben1562@gmail.com'; }
+      gdriveUpdateUI();
+      gdriveStatus('✓ Signed in as ' + gdriveEmail, 'ok');
+    }
+  });
+  client.requestAccessToken();
+}
+
+function gdriveSignOut() {
+  if (gdriveToken && typeof google !== 'undefined') {
+    google.accounts.oauth2.revoke(gdriveToken, () => {});
+  }
+  gdriveToken = null; gdriveEmail = null; gdriveFileId = null;
+  localStorage.removeItem('gdrive-token');
+  localStorage.removeItem('gdrive-email');
+  localStorage.removeItem('gdrive-file-id');
+  gdriveUpdateUI();
+  gdriveStatus('', '');
+}
+
+function gdriveStatus(msg, type) {
+  const el = document.getElementById('gdrive-status');
+  el.style.display = msg ? '' : 'none';
+  el.textContent = msg;
+  el.style.color = type==='error' ? 'var(--red)' : type==='ok' ? 'var(--green)' : 'var(--gold)';
+}
+
+function gdriveShowSetupNote() {
+  gdriveStatus('', '');
+  // Replace sign-in button area with setup instructions
+  document.getElementById('gdrive-signout-view').innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">To enable Google Sign-In, you need a free OAuth Client ID:</div>
+    <ol style="font-size:12px;color:var(--dark);line-height:2;padding-left:18px;">
+      <li>Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--gold);">console.cloud.google.com</a></li>
+      <li>Create a project → APIs & Services → Credentials</li>
+      <li>Create OAuth 2.0 Client ID → Web application</li>
+      <li>Add your file's path as Authorized JS origin</li>
+      <li>Copy the Client ID and paste it into the <code style="font-size:10px;">GDRIVE_CLIENT_ID</code> line in this file</li>
+    </ol>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);">Or use <strong>Export / Import JSON</strong> above to sync manually via Google Drive.</div>`;
+}
+
+async function gdriveSave() {
+  if (!gdriveToken) { gdriveStatus('Sign in first.', 'error'); return; }
+  gdriveStatus('Saving to Drive…', 'loading');
+  try {
+    const content = JSON.stringify({ version:1, exported: new Date().toISOString(), items, recipes }, null, 2);
+    const blob = new Blob([content], { type: 'application/json' });
+    let res;
+    if (gdriveFileId) {
+      res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${gdriveFileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + gdriveToken, 'Content-Type': 'application/json' },
+        body: blob,
+      });
+    } else {
+      const meta = new Blob([JSON.stringify({ name: GDRIVE_FILENAME, mimeType: 'application/json' })], { type: 'application/json' });
+      const form = new FormData();
+      form.append('metadata', meta);
+      form.append('file', blob);
+      res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + gdriveToken },
+        body: form,
+      });
+    }
+    if (!res.ok) {
+      const e = await res.json();
+      if (res.status === 401) { gdriveToken = null; localStorage.removeItem('gdrive-token'); gdriveUpdateUI(); throw new Error('Session expired — please sign in again.'); }
+      throw new Error(e.error?.message || `Drive error ${res.status}`);
+    }
+    const data = await res.json();
+    gdriveFileId = data.id;
+    localStorage.setItem('gdrive-file-id', gdriveFileId);
+    const ts = new Date().toLocaleString();
+    localStorage.setItem('pantry-last-saved', ts);
+    document.getElementById('sync-last-saved').textContent = `Last saved: ${ts}`;
+    gdriveStatus('✓ Saved to Drive', 'ok');
+  } catch(err) { gdriveStatus(err.message, 'error'); }
+}
+
+async function gdriveLoad() {
+  if (!gdriveToken) { gdriveStatus('Sign in first.', 'error'); return; }
+  gdriveStatus('Loading from Drive…', 'loading');
+  try {
+    if (!gdriveFileId) {
+      const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=name%3D'${GDRIVE_FILENAME}'%20and%20trashed%3Dfalse&fields=files(id,name)`, {
+        headers: { 'Authorization': 'Bearer ' + gdriveToken }
+      });
+      const d = await r.json();
+      if (!d.files?.length) throw new Error(`No "${GDRIVE_FILENAME}" found in your Drive.`);
+      gdriveFileId = d.files[0].id;
+      localStorage.setItem('gdrive-file-id', gdriveFileId);
+    }
+    const r = await fetch(`https://www.googleapis.com/drive/v3/files/${gdriveFileId}?alt=media`, {
+      headers: { 'Authorization': 'Bearer ' + gdriveToken }
+    });
+    if (!r.ok) throw new Error(`Could not read file (${r.status})`);
+    const db = await r.json();
+    if (!db.items || !db.recipes) throw new Error('Invalid database file in Drive.');
+    if (!confirm(`Load from Drive? (${db.items.length} items, ${db.recipes.length} recipes — ${db.exported?.slice(0,10)||'unknown'})`)) return;
+    items = db.items; recipes = db.recipes;
+    saveAll(); renderPantry();
+    if (currentView === 'recipes') renderRecipes();
+    gdriveStatus(`✓ Loaded ${items.length} items and ${recipes.length} recipes`, 'ok');
+  } catch(err) { gdriveStatus(err.message, 'error'); }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+renderPantry();
+gdriveUpdateUI();
+</script>
+</body>
+</html>
